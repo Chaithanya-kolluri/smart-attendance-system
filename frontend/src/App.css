@@ -1,0 +1,25 @@
+.attendance-table {
+  width: 100%;
+  max-width: 800px;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.attendance-table th,
+.attendance-table td {
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.attendance-table th {
+  background-color: var(--code-bg);
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.attendance-table tr:hover {
+  background-color: var(--social-bg);
+}
