@@ -1,54 +1,31 @@
-# Python
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment Variables
+.env
+*/.env
+!.env.example
+!*/.env.example
+
+# Build Outputs
+dist/
+*/dist/
+build/
+*/build/
+
+# Python cache & virtual environments
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-*.egg-info/
-dist/
-build/
-*.egg
-
-# Virtual environment
 .venv/
 venv/
 env/
 
-# Environment variables
-.env
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
+# OS and IDE Files
 .DS_Store
 Thumbs.db
-desktop.ini
-
-# Testing
-.pytest_cache/
-htmlcov/
-.coverage
-coverage.xml
-
-# Logs
+.vscode/
+.idea/
 *.log
-logs/
 
-# Node / Frontend
-node_modules/
-frontend/dist/
-
-# Database
-*.db
-*.sqlite3
-
-# Face data (don't commit embeddings or captured images)
-face_data/
-captured_faces/
-
-# Docker
-docker-compose.override.yml
