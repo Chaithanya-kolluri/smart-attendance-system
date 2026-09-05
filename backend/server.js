@@ -224,13 +224,15 @@ app.get('*', (req, res) => {
 });
 
 // Start Express Server
-app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(`🚀 Smart Attendance API Server running on port ${PORT}`);
-  console.log(`📡 URL: http://localhost:${PORT}`);
-  console.log(`💾 Mode: ${db.isUsingSupabase() ? 'Supabase PostgreSQL' : 'Local In-Memory Mock'}`);
-  console.log(`====================================================`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(`🚀 Smart Attendance API Server running on port ${PORT}`);
+    console.log(`📡 URL: http://localhost:${PORT}`);
+    console.log(`💾 Mode: ${db.isUsingSupabase() ? 'Supabase PostgreSQL' : 'Local In-Memory Mock'}`);
+    console.log(`====================================================`);
+  });
+}
 
 module.exports = app;
 
