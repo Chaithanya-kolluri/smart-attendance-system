@@ -3,7 +3,10 @@ import {
   CheckCheck, 
   XSquare, 
   BookOpen, 
-  Info
+  Info,
+  FileText,
+  ArrowRight,
+  Zap
 } from 'lucide-react';
 
 export default function AttendanceMatrix({ 
@@ -13,7 +16,9 @@ export default function AttendanceMatrix({
   students, 
   attendanceLogs, 
   onUpdateAttendanceRecord,
-  onBulkUpdateAttendance 
+  onBulkUpdateAttendance,
+  activeSlotToMark,
+  onNavigateToReports 
 }) {
   const currentClass = classes.find(c => c.id === selectedClassId) || classes[0];
   const classSubjects = currentClass?.subjects || [];
@@ -24,6 +29,25 @@ export default function AttendanceMatrix({
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'Present' | 'Absent' | 'Late'
+
+  // If activeSlotToMark is passed from timetable or banner, auto-configure!
+  useEffect(() => {
+    if (activeSlotToMark) {
+      // Find matching subject
+      const match = classSubjects.find(s => 
+        activeSlotToMark.subject.toLowerCase().includes(s.code.toLowerCase()) ||
+        s.name.toLowerCase().includes(activeSlotToMark.subject.toLowerCase())
+      );
+      if (match) {
+        setSelectedSubjectId(match.id);
+      }
+      if (activeSlotToMark.type === 'Lab') {
+        setSessionType('Lab');
+      } else {
+        setSessionType('Theory');
+      }
+    }
+  }, [activeSlotToMark, classSubjects]);
 
   // Current Subject Object
   const currentSubject = classSubjects.find(s => s.id === selectedSubjectId) || classSubjects[0];
@@ -353,6 +377,19 @@ export default function AttendanceMatrix({
               </button>
             ))}
           </div>
+
+          {onNavigateToReports && (
+            <button
+              type="button"
+              onClick={onNavigateToReports}
+              className="flex items-center gap-1.5 px-3 py-1 bg-white/[0.04] hover:bg-[#ccff00] hover:text-black text-neutral-300 border border-white/[0.1] hover:border-[#ccff00] rounded-xs text-[10px] font-mono uppercase tracking-wider font-semibold transition duration-200 ml-2"
+              title="Open recorded session reports"
+            >
+              <FileText className="w-3 h-3 text-[#ccff00]" />
+              <span>Session Reports</span>
+              <ArrowRight className="w-3 h-3 opacity-60" />
+            </button>
+          )}
 
         </div>
 

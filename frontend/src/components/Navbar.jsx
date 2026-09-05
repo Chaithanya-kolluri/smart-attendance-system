@@ -2,10 +2,12 @@ import React from 'react';
 
 export default function Navbar({ activeTab, setActiveTab, selectedClass, systemStatus }) {
   const navItems = [
-    { id: 'matrix', code: '01', label: 'Attendance Matrix', sub: 'High-Speed Mark' },
-    { id: 'students', code: '02', label: 'Student Directory', sub: 'CRUD Roster' },
-    { id: 'classes', code: '03', label: 'Class Registry', sub: 'Dynamic Divisions' },
-    { id: 'biometrics', code: '04', label: 'Biometric Scanner', sub: '128-D Ingestion' }
+    { id: 'matrix', code: '01', label: 'Attendance Matrix', sub: 'Live Mark' },
+    { id: 'timetable', code: '02', label: 'Schedule Timetable', sub: 'IST GTTC Grid' },
+    { id: 'reports', code: '03', label: 'Class Reports', sub: 'Turnout & Logs' },
+    { id: 'students', code: '04', label: 'Student Directory', sub: 'CRUD Roster' },
+    { id: 'classes', code: '05', label: 'Class Registry', sub: 'Dynamic Divisions' },
+    { id: 'biometrics', code: '06', label: 'Biometric Scanner', sub: '128-D Ingestion' }
   ];
 
   const isConnected = systemStatus?.status === 'healthy';
@@ -45,7 +47,7 @@ export default function Navbar({ activeTab, setActiveTab, selectedClass, systemS
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`group relative px-4 py-2.5 transition-all duration-300 rounded-xs text-left ${
+                  className={`group relative px-2.5 lg:px-3.5 py-2 transition-all duration-300 rounded-xs text-left ${
                     isActive
                       ? 'text-white'
                       : 'text-neutral-400 hover:text-neutral-200'

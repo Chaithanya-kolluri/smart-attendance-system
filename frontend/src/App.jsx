@@ -4,6 +4,9 @@ import AttendanceMatrix from './components/AttendanceMatrix';
 import StudentDirectory from './components/StudentDirectory';
 import ClassRegistry from './components/ClassRegistry';
 import LaptopRegistration from './components/LaptopRegistration';
+import AutoScheduleBanner from './components/AutoScheduleBanner';
+import TimetableScheduleView from './components/TimetableScheduleView';
+import ClassReportsView from './components/ClassReportsView';
 import { 
   INITIAL_CLASSES, 
   INITIAL_STUDENTS, 
@@ -11,8 +14,9 @@ import {
 } from './data/initialData';
 
 export default function App() {
-  // Navigation: 'matrix' | 'students' | 'classes' | 'biometrics'
+  // Navigation: 'matrix' | 'timetable' | 'reports' | 'students' | 'classes' | 'biometrics'
   const [activeTab, setActiveTab] = useState('matrix');
+  const [activeSlotToMark, setActiveSlotToMark] = useState(null);
 
   // Core Dynamic Data State
   const [classes, setClasses] = useState(() => {
@@ -166,6 +170,11 @@ export default function App() {
     });
   };
 
+  const handleSelectSlotForAttendance = (slot) => {
+    setActiveSlotToMark(slot);
+    setActiveTab('matrix');
+  };
+
   const selectedClass = classes.find(c => c.id === selectedClassId) || classes[0];
 
   return (
@@ -185,6 +194,11 @@ export default function App() {
           systemStatus={systemStatus}
         />
 
+        {/* Real-time IST Auto-Scheduler & Active Period Telemetry Banner */}
+        <AutoScheduleBanner 
+          onSelectSlotForAttendance={handleSelectSlotForAttendance} 
+        />
+
         {/* Dynamic Portal Viewports */}
         <main className="flex-1">
           {activeTab === 'matrix' && (
@@ -196,6 +210,23 @@ export default function App() {
               attendanceLogs={attendanceLogs}
               onUpdateAttendanceRecord={handleUpdateAttendanceRecord}
               onBulkUpdateAttendance={handleBulkUpdateAttendance}
+              activeSlotToMark={activeSlotToMark}
+              onNavigateToReports={() => setActiveTab('reports')}
+            />
+          )}
+
+          {activeTab === 'timetable' && (
+            <TimetableScheduleView 
+              onSelectSlotForAttendance={handleSelectSlotForAttendance}
+            />
+          )}
+
+          {activeTab === 'reports' && (
+            <ClassReportsView
+              attendanceLogs={attendanceLogs}
+              students={students}
+              classes={classes}
+              selectedClassId={selectedClassId}
             />
           )}
 

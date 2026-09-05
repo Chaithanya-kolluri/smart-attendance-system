@@ -7,7 +7,7 @@ export const INITIAL_CLASSES = [
   {
     id: 'daiml',
     code: 'DAIML',
-    name: 'Data Science & AI / Machine Learning',
+    name: 'Diploma in AI & Machine Learning',
     department: 'Computer Science & AI',
     semester: 'Year II • Semester 4',
     isArchived: false,
@@ -234,3 +234,4 @@ export const INITIAL_ATTENDANCE_LOGS = {
     'stu-08': 'Present'
   }
 };
+
