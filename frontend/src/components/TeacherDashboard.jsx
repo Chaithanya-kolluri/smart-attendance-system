@@ -1,21 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ShieldCheck, 
-  Users, 
-  CheckCircle2, 
-  XCircle, 
-  RefreshCw, 
-  AlertCircle,
-  Sparkles
-} from 'lucide-react';
+import { RefreshCw, AlertCircle, Check, User } from 'lucide-react';
 
 export default function TeacherDashboard() {
-  // Mock Auth State
   const [teacher, setTeacher] = useState({
     name: 'Prof. David Vance',
-    role: 'Course Instructor',
+    role: 'Faculty Instructor',
     department: 'Computer Science & AI',
-    token: 'mock-jwt-teacher-auth-token-9942'
+    token: 'AUTH.SECURE.9942-JWT'
   });
 
   const [selectedClass, setSelectedClass] = useState('CS101');
@@ -25,7 +16,6 @@ export default function TeacherDashboard() {
   const [updatingId, setUpdatingId] = useState(null);
   const [notification, setNotification] = useState(null);
 
-  // Fetch Class Roster & Attendance
   const fetchClassAttendance = async (className, date) => {
     setLoading(true);
     try {
@@ -43,7 +33,7 @@ export default function TeacherDashboard() {
       console.error('Error loading class attendance:', err);
       setNotification({
         type: 'error',
-        message: 'Could not communicate with the API backend.'
+        message: 'Network error connecting to API cluster.'
       });
     } finally {
       setLoading(false);
@@ -54,7 +44,6 @@ export default function TeacherDashboard() {
     fetchClassAttendance(selectedClass, selectedDate);
   }, [selectedClass, selectedDate]);
 
-  // Handle Teacher Status Override
   const handleStatusOverride = async (studentId, currentLogId, newStatus) => {
     setUpdatingId(studentId);
     setNotification(null);
@@ -80,9 +69,8 @@ export default function TeacherDashboard() {
       if (response.ok && data.success) {
         setNotification({
           type: 'success',
-          message: `Attendance for student ${studentId} updated to '${newStatus}'.`
+          message: `Subject [${studentId}] override: status marked as '${newStatus.toUpperCase()}'.`
         });
-        // Refresh roster
         await fetchClassAttendance(selectedClass, selectedDate);
       } else {
         setNotification({
@@ -94,14 +82,13 @@ export default function TeacherDashboard() {
       console.error('Error updating status:', err);
       setNotification({
         type: 'error',
-        message: 'Network error while updating attendance.'
+        message: 'Network communication fault.'
       });
     } finally {
       setUpdatingId(null);
     }
   };
 
-  // Compile student roster with their status on selected date
   const students = rosterData?.students || [];
   const logs = rosterData?.logs || [];
 
@@ -117,294 +104,319 @@ export default function TeacherDashboard() {
   const totalStudents = students.length;
   const presentCount = rosterWithStatus.filter((r) => r.status === 'Present').length;
   const lateCount = rosterWithStatus.filter((r) => r.status === 'Late').length;
-  const absentCount = totalStudents - presentCount - lateCount;
+  const absentCount = Math.max(0, totalStudents - presentCount - lateCount);
   const attendancePercentage = totalStudents > 0 ? Math.round(((presentCount + lateCount * 0.75) / totalStudents) * 100) : 0;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Teacher Authenticated Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-500/20">
-            {teacher.name.split(' ')[1]?.charAt(0) || 'T'}
+    <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 pt-12 pb-24 animate-reveal">
+      
+      {/* Top Editorial Identity & Faculty Strip */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-12 border-b border-white/[0.08]">
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-[10px] font-mono tracking-[0.25em] text-[#ff5500] uppercase font-semibold">
+              03.0 // Faculty Oversight
+            </span>
+            <span className="h-px w-12 bg-white/[0.1]" />
+            <span className="text-[10px] font-mono tracking-widest text-neutral-500 uppercase">
+              Roster & Override Matrix
+            </span>
+          </div>
+
+          <h1 className="font-display text-5xl sm:text-7xl font-extrabold tracking-tighter text-white uppercase leading-[0.92]">
+            Roster <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-neutral-500">Matrix.</span>
+          </h1>
+        </div>
+
+        {/* Instructor Verified Badge */}
+        <div className="flex items-center gap-4 p-3.5 bg-white/[0.02] border border-white/[0.08] rounded-sm">
+          <div className="w-9 h-9 rounded-sm bg-white/[0.06] border border-white/[0.1] flex items-center justify-center font-display font-bold text-white text-sm">
+            {teacher.name.split(' ')[1]?.charAt(0) || 'V'}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-white tracking-tight">{teacher.name}</h1>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/25">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                Instructor Verified
+              <span className="text-xs font-bold text-white uppercase">{teacher.name}</span>
+              <span className="text-[9px] font-mono tracking-widest text-[#ccff00] uppercase">
+                [AUTH.OK]
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              {teacher.role} • {teacher.department}
+            <p className="text-[10px] font-mono text-neutral-400 mt-0.5">
+              {teacher.department} • <button
+                type="button"
+                onClick={() => {
+                  setTeacher({
+                    ...teacher,
+                    name: teacher.name.includes('David') ? 'Dr. Priya Sundaram' : 'Prof. David Vance'
+                  });
+                }}
+                className="hover:underline text-neutral-300"
+              >
+                Switch
+              </button>
             </p>
           </div>
         </div>
+      </div>
 
-        {/* Security / Session Info */}
-        <div className="flex items-center gap-3">
-          <div className="text-right hidden sm:block">
-            <div className="text-xs text-slate-400">Session Token</div>
-            <div className="text-[11px] font-mono text-slate-500 truncate max-w-[140px]">{teacher.token}</div>
+      {/* Filter Parameters Strip */}
+      <div className="py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-white/[0.08]">
+        <div className="flex flex-wrap items-center gap-6">
+          
+          {/* Class Division Selector */}
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-mono tracking-[0.2em] text-neutral-400 uppercase font-semibold">
+              Division //
+            </span>
+            <select
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+              className="px-3.5 py-2 bg-[#0c0c10] border border-white/[0.12] rounded-sm text-xs font-mono font-semibold text-white focus:outline-none focus:border-[#ccff00] transition"
+            >
+              <option value="CS101">CS101 - Artificial Intelligence</option>
+              <option value="CS102">CS102 - Data Structures & Algorithms</option>
+              <option value="EE200">EE200 - Electrical Engineering</option>
+              <option value="ME300">ME300 - Mechanical Engineering</option>
+            </select>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              const newName = teacher.name.includes('David') ? 'Dr. Priya Sundaram' : 'Prof. David Vance';
-              setTeacher({ ...teacher, name: newName });
-            }}
-            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition"
-          >
-            Switch Profile
-          </button>
+
+          {/* Date Picker */}
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-mono tracking-[0.2em] text-neutral-400 uppercase font-semibold">
+              Target Date //
+            </span>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="px-3.5 py-2 bg-[#0c0c10] border border-white/[0.12] rounded-sm text-xs font-mono text-white focus:outline-none focus:border-[#ccff00] transition"
+            />
+          </div>
+
+        </div>
+
+        {/* Sync Trigger */}
+        <button
+          type="button"
+          onClick={() => fetchClassAttendance(selectedClass, selectedDate)}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/[0.1] rounded-sm text-xs font-mono uppercase tracking-widest font-semibold transition"
+        >
+          <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+          <span>Sync Roster</span>
+        </button>
+      </div>
+
+      {/* KPI Statistic Ribbons */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 py-10 border-b border-white/[0.08]">
+        <div>
+          <span className="text-[10px] font-mono tracking-[0.2em] text-neutral-500 uppercase font-semibold">
+            01 // Total Enrolled
+          </span>
+          <div className="font-display text-4xl sm:text-5xl font-extrabold text-white tracking-tighter mt-2">
+            {totalStudents}
+          </div>
+          <p className="text-[10px] font-mono text-neutral-500 mt-1">Class {selectedClass}</p>
+        </div>
+
+        <div>
+          <span className="text-[10px] font-mono tracking-[0.2em] text-[#ccff00] uppercase font-semibold">
+            02 // Verified Present
+          </span>
+          <div className="font-display text-4xl sm:text-5xl font-extrabold text-[#ccff00] tracking-tighter mt-2">
+            {presentCount}
+          </div>
+          <p className="text-[10px] font-mono text-neutral-500 mt-1">Optical Face Verified</p>
+        </div>
+
+        <div>
+          <span className="text-[10px] font-mono tracking-[0.2em] text-[#ff5500] uppercase font-semibold">
+            03 // Absent / Unverified
+          </span>
+          <div className="font-display text-4xl sm:text-5xl font-extrabold text-[#ff5500] tracking-tighter mt-2">
+            {absentCount}
+          </div>
+          <p className="text-[10px] font-mono text-neutral-500 mt-1">{lateCount} flagged late arrival</p>
+        </div>
+
+        <div>
+          <span className="text-[10px] font-mono tracking-[0.2em] text-[#3b82f6] uppercase font-semibold">
+            04 // Turnout Ratio
+          </span>
+          <div className="font-display text-4xl sm:text-5xl font-extrabold text-white tracking-tighter mt-2">
+            {attendancePercentage}%
+          </div>
+          <div className="w-full h-1 bg-white/[0.06] rounded-none mt-2 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#2563eb] to-[#ccff00] transition-all duration-500"
+              style={{ width: `${attendancePercentage}%` }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Filter & Controls Bar */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl mb-8">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-4 w-full sm:w-auto">
-            {/* Class Dropdown */}
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Class:</label>
-              <select
-                value={selectedClass}
-                onChange={(e) => setSelectedClass(e.target.value)}
-                className="px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm font-medium text-white focus:outline-none focus:border-cyan-500 transition"
-              >
-                <option value="CS101">CS101 - Computer Science & AI</option>
-                <option value="CS102">CS102 - Data Structures & Algorithms</option>
-                <option value="EE200">EE200 - Electrical Engineering</option>
-                <option value="ME300">ME300 - Mechanical Engineering</option>
-              </select>
-            </div>
-
-            {/* Date Picker */}
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Date:</label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm font-medium text-white focus:outline-none focus:border-cyan-500 transition"
-              />
-            </div>
-          </div>
-
-          {/* Refresh Action */}
-          <button
-            type="button"
-            onClick={() => fetchClassAttendance(selectedClass, selectedDate)}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition self-end sm:self-auto"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            Refresh Roster
-          </button>
-        </div>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase">Enrolled</span>
-            <Users className="w-4 h-4 text-cyan-400" />
-          </div>
-          <h3 className="text-2xl font-bold text-white mt-2">{totalStudents}</h3>
-          <p className="text-[11px] text-slate-500 mt-1">Class {selectedClass}</p>
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase">Present</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          </div>
-          <h3 className="text-2xl font-bold text-emerald-400 mt-2">{presentCount}</h3>
-          <p className="text-[11px] text-slate-500 mt-1">On-time arrivals</p>
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase">Late / Absent</span>
-            <XCircle className="w-4 h-4 text-rose-400" />
-          </div>
-          <h3 className="text-2xl font-bold text-rose-400 mt-2">{absentCount}</h3>
-          <p className="text-[11px] text-slate-500 mt-1">{lateCount} flagged late</p>
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase">Turnout Rate</span>
-            <Sparkles className="w-4 h-4 text-indigo-400" />
-          </div>
-          <h3 className="text-2xl font-bold text-white mt-2">{attendancePercentage}%</h3>
-          <p className="text-[11px] text-emerald-400 mt-1">Target &gt; 80%</p>
-        </div>
-      </div>
-
-      {/* Notification Toast */}
+      {/* Live Toast */}
       {notification && (
-        <div className={`mb-6 p-4 rounded-xl border flex items-center justify-between transition-all ${
+        <div className={`my-8 p-4 rounded-sm border flex items-center justify-between text-xs font-mono tracking-wide transition-all ${
           notification.type === 'success'
-            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-            : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+            ? 'bg-[#ccff00]/10 border-[#ccff00]/40 text-[#ccff00]'
+            : 'bg-[#ff5500]/10 border-[#ff5500]/40 text-[#ff5500]'
         }`}>
-          <div className="flex items-center gap-3 text-sm font-medium">
+          <div className="flex items-center gap-3">
             {notification.type === 'success' ? (
-              <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-400" />
+              <Check className="w-4 h-4 text-[#ccff00] flex-shrink-0" />
             ) : (
-              <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-400" />
+              <AlertCircle className="w-4 h-4 text-[#ff5500] flex-shrink-0" />
             )}
             <span>{notification.message}</span>
           </div>
           <button
             type="button"
             onClick={() => setNotification(null)}
-            className="text-xs px-2 py-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white"
+            className="hover:opacity-70 text-[10px] uppercase font-bold tracking-widest ml-4"
           >
-            Dismiss
+            [Dismiss]
           </button>
         </div>
       )}
 
-      {/* Master Student Roster Grid */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
-          <div>
-            <h3 className="font-semibold text-white text-sm">Master Student Roster & Live Override Controls</h3>
-            <p className="text-xs text-slate-400">
-              Manual attendance overrides apply immediately to the database and sync with the student view.
-            </p>
+      {/* Master Roster Ledger */}
+      <div className="pt-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <span className="w-1.5 h-1.5 rounded-none rotate-45 bg-[#ff5500]" />
+            <h3 className="font-display text-xl font-bold text-white uppercase tracking-tight">
+              Master Roster & Live Overrides
+            </h3>
           </div>
-          <span className="text-xs font-mono text-cyan-400 px-2.5 py-1 rounded bg-cyan-500/10 border border-cyan-500/20">
-            {rosterWithStatus.length} Students
+          <span className="text-[10px] font-mono tracking-widest text-neutral-500 uppercase">
+            Click Action To Execute Instant Database Mutation
           </span>
         </div>
 
         {rosterWithStatus.length === 0 ? (
-          <div className="p-12 text-center text-slate-400">
-            <Users className="w-12 h-12 mx-auto mb-3 text-slate-600" />
-            <p className="text-sm font-medium text-slate-300">No students found enrolled in {selectedClass}.</p>
-            <p className="text-xs text-slate-500 mt-1">
-              Enroll new students using the Laptop Registration Portal tab.
+          <div className="py-16 text-center border border-white/[0.06] rounded-sm bg-white/[0.01]">
+            <User className="w-8 h-8 text-neutral-600 mx-auto mb-3" />
+            <p className="text-sm font-mono text-neutral-300">No students currently enrolled in {selectedClass}.</p>
+            <p className="text-xs font-mono text-neutral-600 mt-1">
+              Enroll subjects in the 01 // Identity Enrollment tab.
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="border-t border-white/[0.08] overflow-x-auto">
+            <table className="w-full text-left border-collapse font-mono">
               <thead>
-                <tr className="bg-slate-950/60 border-b border-slate-800 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                  <th className="py-3.5 px-6">Student Info</th>
-                  <th className="py-3.5 px-6">Student ID</th>
-                  <th className="py-3.5 px-6">Today's Status</th>
-                  <th className="py-3.5 px-6">Recorded Timestamp</th>
-                  <th className="py-3.5 px-6 text-right">Teacher Manual Override Controls</th>
+                <tr className="border-b border-white/[0.08] text-[10px] text-neutral-500 uppercase tracking-widest">
+                  <th className="py-4 pr-6 font-semibold">01 // Subject Name</th>
+                  <th className="py-4 px-6 font-semibold">02 // Key</th>
+                  <th className="py-4 px-6 font-semibold">03 // Current Status</th>
+                  <th className="py-4 px-6 font-semibold">04 // Log Timestamp</th>
+                  <th className="py-4 pl-6 text-right font-semibold">Manual Overrides</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-xs">
+              <tbody className="divide-y divide-white/[0.04] text-xs">
                 {rosterWithStatus.map(({ student, log, status }) => {
                   const isPresent = status === 'Present';
                   const isLate = status === 'Late';
                   const isAbsent = status === 'Absent';
                   const isUpdating = updatingId === student.id;
 
-                  const logTimeStr = log?.timestamp
+                  const logTime = log?.timestamp
                     ? new Date(log.timestamp).toLocaleTimeString(undefined, {
                         hour: '2-digit',
                         minute: '2-digit',
                         second: '2-digit'
                       })
-                    : 'Not Checked In';
+                    : 'UNRECORDED';
 
                   return (
-                    <tr key={student.id} className="hover:bg-slate-800/30 transition">
-                      {/* Name & Avatar */}
-                      <td className="py-3.5 px-6">
+                    <tr key={student.id} className="hover:bg-white/[0.02] transition-colors">
+                      {/* Name */}
+                      <td className="py-4 pr-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-sm text-cyan-400">
+                          <div className="w-7 h-7 bg-white/[0.04] border border-white/[0.08] flex items-center justify-center font-display text-white font-bold text-xs">
                             {student.name.charAt(0)}
                           </div>
                           <div>
-                            <div className="font-semibold text-white text-sm">{student.name}</div>
-                            <div className="text-[11px] text-slate-400">{student.class_assigned}</div>
+                            <div className="text-white font-sans font-semibold text-sm">{student.name}</div>
+                            <div className="text-[10px] text-neutral-500">{student.class_assigned}</div>
                           </div>
                         </div>
                       </td>
 
-                      {/* Student ID */}
-                      <td className="py-3.5 px-6">
-                        <span className="font-mono text-xs text-slate-300 bg-slate-950 px-2 py-1 rounded border border-slate-800">
+                      {/* ID */}
+                      <td className="py-4 px-6">
+                        <span className="px-2 py-0.5 bg-white/[0.03] border border-white/[0.06] text-neutral-300 text-xs">
                           {student.id}
                         </span>
                       </td>
 
-                      {/* Current Status Badge */}
-                      <td className="py-3.5 px-6">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                      {/* Status */}
+                      <td className="py-4 px-6">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest rounded-xs border ${
                           isPresent
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25'
+                            ? 'text-[#ccff00] bg-[#ccff00]/10 border-[#ccff00]/30'
                             : isLate
-                            ? 'bg-amber-500/10 text-amber-400 border-amber-500/25'
-                            : 'bg-rose-500/10 text-rose-400 border-rose-500/25'
+                            ? 'text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/30'
+                            : 'text-[#ff5500] bg-[#ff5500]/10 border-[#ff5500]/30'
                         }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${
-                            isPresent ? 'bg-emerald-400' : isLate ? 'bg-amber-400' : 'bg-rose-400'
+                          <span className={`w-1 h-1 rounded-none rotate-45 ${
+                            isPresent ? 'bg-[#ccff00]' : isLate ? 'bg-[#f59e0b]' : 'bg-[#ff5500]'
                           }`} />
                           {status}
                         </span>
                       </td>
 
                       {/* Timestamp */}
-                      <td className="py-3.5 px-6 font-mono text-slate-400">
-                        {logTimeStr}
+                      <td className="py-4 px-6 text-neutral-500 text-[11px]">
+                        {logTime}
                       </td>
 
-                      {/* Teacher Manual Action Buttons / Override Dropdown */}
-                      <td className="py-3.5 px-6 text-right">
-                        <div className="inline-flex items-center gap-1.5">
-                          {/* Quick Toggle: Present */}
+                      {/* Segmented Action Toggle Buttons */}
+                      <td className="py-4 pl-6 text-right">
+                        <div className="inline-flex items-center gap-1">
+                          
+                          {/* Present */}
                           <button
                             type="button"
                             disabled={isUpdating || isPresent}
                             onClick={() => handleStatusOverride(student.id, log?.id, 'Present')}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                            className={`px-3 py-1 text-[10px] uppercase tracking-wider font-bold rounded-xs transition ${
                               isPresent
-                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 cursor-default'
-                                : 'bg-slate-800 hover:bg-emerald-500/15 hover:text-emerald-400 text-slate-300 border border-slate-700'
+                                ? 'bg-[#ccff00] text-black shadow-[0_0_12px_rgba(204,255,0,0.3)] cursor-default'
+                                : 'bg-white/[0.03] hover:bg-[#ccff00]/20 hover:text-[#ccff00] text-neutral-400 border border-white/[0.08]'
                             }`}
                           >
                             Present
                           </button>
 
-                          {/* Quick Toggle: Late */}
+                          {/* Late */}
                           <button
                             type="button"
                             disabled={isUpdating || isLate}
                             onClick={() => handleStatusOverride(student.id, log?.id, 'Late')}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                            className={`px-3 py-1 text-[10px] uppercase tracking-wider font-bold rounded-xs transition ${
                               isLate
-                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 cursor-default'
-                                : 'bg-slate-800 hover:bg-amber-500/15 hover:text-amber-400 text-slate-300 border border-slate-700'
+                                ? 'bg-[#f59e0b] text-black shadow-[0_0_12px_rgba(245,158,11,0.3)] cursor-default'
+                                : 'bg-white/[0.03] hover:bg-[#f59e0b]/20 hover:text-[#f59e0b] text-neutral-400 border border-white/[0.08]'
                             }`}
                           >
                             Late
                           </button>
 
-                          {/* Quick Toggle: Absent */}
+                          {/* Absent */}
                           <button
                             type="button"
                             disabled={isUpdating || isAbsent}
                             onClick={() => handleStatusOverride(student.id, log?.id, 'Absent')}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                            className={`px-3 py-1 text-[10px] uppercase tracking-wider font-bold rounded-xs transition ${
                               isAbsent
-                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 cursor-default'
-                                : 'bg-slate-800 hover:bg-rose-500/15 hover:text-rose-400 text-slate-300 border border-slate-700'
+                                ? 'bg-[#ff5500] text-white shadow-[0_0_12px_rgba(255,85,0,0.3)] cursor-default'
+                                : 'bg-white/[0.03] hover:bg-[#ff5500]/20 hover:text-[#ff5500] text-neutral-400 border border-white/[0.08]'
                             }`}
                           >
                             Absent
                           </button>
+
                         </div>
                       </td>
                     </tr>
@@ -415,7 +427,7 @@ export default function TeacherDashboard() {
           </div>
         )}
       </div>
+
     </div>
   );
 }
-
