@@ -26,9 +26,12 @@ app.use((req, res, next) => {
 });
 
 // -----------------------------------------------------------------------------
-// Health & Info Route
+// API Router Setup (Handles both /api/* and root mount for Vercel serverless)
 // -----------------------------------------------------------------------------
-app.get('/api/health', (req, res) => {
+const apiRouter = express.Router();
+
+// Health & Info Route
+apiRouter.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -41,8 +44,8 @@ app.get('/api/health', (req, res) => {
 // Student Routes
 // -----------------------------------------------------------------------------
 
-// POST /api/students/register -> Save new student demographics and facial embeddings array
-app.post('/api/students/register', async (req, res) => {
+// POST /students/register -> Save new student demographics and facial embeddings array
+apiRouter.post('/students/register', async (req, res) => {
   try {
     const { id, name, class_assigned, face_encoding } = req.body;
 
@@ -88,8 +91,8 @@ app.post('/api/students/register', async (req, res) => {
   }
 });
 
-// GET /api/students -> Fetch all students with face_encodings (Used by Raspberry Pi Cache)
-app.get('/api/students', async (req, res) => {
+// GET /students -> Fetch all students with face_encodings (Used by Raspberry Pi Cache)
+apiRouter.get('/students', async (req, res) => {
   try {
     const students = await db.getAllStudents();
     return res.json({
@@ -103,8 +106,8 @@ app.get('/api/students', async (req, res) => {
   }
 });
 
-// GET /api/students/report/:id -> Fetch historical logs for a given student ID
-app.get('/api/students/report/:id', async (req, res) => {
+// GET /students/report/:id -> Fetch historical logs for a given student ID
+apiRouter.get('/students/report/:id', async (req, res) => {
   try {
     const studentId = req.params.id;
     if (!studentId) {
@@ -126,8 +129,8 @@ app.get('/api/students/report/:id', async (req, res) => {
 // Attendance Routes
 // -----------------------------------------------------------------------------
 
-// GET /api/attendance/class/:className -> Fetch attendance records for a class on the current date
-app.get('/api/attendance/class/:className', async (req, res) => {
+// GET /attendance/class/:className -> Fetch attendance records for a class on the current date
+apiRouter.get('/attendance/class/:className', async (req, res) => {
   try {
     const { className } = req.params;
     const { date } = req.query; // optional YYYY-MM-DD
@@ -143,8 +146,8 @@ app.get('/api/attendance/class/:className', async (req, res) => {
   }
 });
 
-// POST /api/attendance/mark -> Endpoint for the Pi or Teacher to insert/update an attendance row
-app.post('/api/attendance/mark', async (req, res) => {
+// POST /attendance/mark -> Endpoint for the Pi or Teacher to insert/update an attendance row
+apiRouter.post('/attendance/mark', async (req, res) => {
   try {
     const { student_id, class_name, status = 'Present', timestamp } = req.body;
 
@@ -173,8 +176,8 @@ app.post('/api/attendance/mark', async (req, res) => {
   }
 });
 
-// PUT /api/attendance/update -> Secure endpoint for teachers to edit a log row
-app.put('/api/attendance/update', async (req, res) => {
+// PUT /attendance/update -> Secure endpoint for teachers to edit a log row
+apiRouter.put('/attendance/update', async (req, res) => {
   try {
     const { id, student_id, class_name, status, timestamp } = req.body;
 
@@ -203,6 +206,10 @@ app.put('/api/attendance/update', async (req, res) => {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// Mount Router on both '/api' and '/' for seamless routing in all hosting modes
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
 
 // -----------------------------------------------------------------------------
 // Serve Static Frontend Assets & SPA Client-Side Routing
