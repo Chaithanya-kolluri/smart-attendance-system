@@ -257,3 +257,4 @@ export default function AddStudentModal({ isOpen, onClose, onSave, classes = [],
     </div>
   );
 }
+

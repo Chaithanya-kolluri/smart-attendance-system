@@ -2,8 +2,7 @@ import React from 'react';
 import { 
   Clock, 
   BookOpen, 
-  ArrowRight, 
-  Coffee 
+  ArrowRight 
 } from 'lucide-react';
 import { GTTC_METADATA, GTTC_SUBJECTS, WEEKLY_SCHEDULE } from '../data/timetableData';
 
@@ -44,10 +43,6 @@ export default function TimetableScheduleView({ onSelectSlotForAttendance }) {
             <span className="w-1.5 h-1.5 bg-[#00FF88] rounded-none rotate-45 shadow-[0_0_6px_#00FF88]" />
             <span>Laboratory Block</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#161114] border border-[#2E1C22] rounded-xs text-[#B3A2A8]">
-            <Coffee className="w-3 h-3 text-[#FFB800]" />
-            <span>Break / Assembly</span>
-          </div>
         </div>
       </div>
 
@@ -70,30 +65,21 @@ export default function TimetableScheduleView({ onSelectSlotForAttendance }) {
                   </h3>
                 </div>
                 <span className="text-[10px] font-mono text-[#B3A2A8] uppercase">
-                  {scheduleSlots.filter(s => !s.isBreak).length} Academic Periods
+                  {scheduleSlots.length} Academic Periods
                 </span>
               </div>
 
               {/* Day Period Slots Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
                 {scheduleSlots.map((slot, idx) => {
-                  const isBreak = slot.isBreak;
                   const isLab = slot.type === 'Lab';
                   const isMath = slot.code === '24AI31T' || slot.subject?.toLowerCase().includes('em');
 
                   return (
                     <div
                       key={idx}
-                      onClick={() => {
-                        if (!isBreak) {
-                          onSelectSlotForAttendance(slot, day);
-                        }
-                      }}
-                      className={`p-3.5 rounded-sm border transition flex flex-col justify-between min-h-[110px] ${
-                        isBreak 
-                          ? 'bg-[#0D0B0D]/60 border-[#2E1C22] text-[#7A6970] cursor-default'
-                          : 'bg-[#0D0B0D] border-[#2E1C22] hover:border-[#FF2A4B] hover:shadow-[0_0_15px_rgba(255,42,75,0.15)] cursor-pointer group'
-                      }`}
+                      onClick={() => onSelectSlotForAttendance(slot, day)}
+                      className="p-3.5 rounded-sm border bg-[#0D0B0D] border-[#2E1C22] hover:border-[#FF2A4B] hover:shadow-[0_0_15px_rgba(255,42,75,0.15)] cursor-pointer group transition flex flex-col justify-between min-h-[115px]"
                     >
                       <div>
                         <div className="flex items-center justify-between text-[10px] font-mono text-[#B3A2A8] mb-1.5">
@@ -101,42 +87,36 @@ export default function TimetableScheduleView({ onSelectSlotForAttendance }) {
                             <Clock className="w-3 h-3 text-[#FF2A4B]" />
                             {slot.start} - {slot.end}
                           </span>
-                          {!isBreak && (
-                            <span className={`px-1 py-0.2 rounded-2xs text-[9px] uppercase font-bold ${
-                              isLab 
-                                ? 'text-[#00FF88] bg-[#00FF88]/10 border border-[#00FF88]/20'
-                                : 'text-[#FF2A4B] bg-[#FF2A4B]/10 border border-[#FF2A4B]/20'
-                            }`}>
-                              {slot.type}
-                            </span>
-                          )}
+                          <span className={`px-1 py-0.2 rounded-2xs text-[9px] uppercase font-bold ${
+                            isLab 
+                              ? 'text-[#00FF88] bg-[#00FF88]/10 border border-[#00FF88]/20'
+                              : 'text-[#FF2A4B] bg-[#FF2A4B]/10 border border-[#FF2A4B]/20'
+                          }`}>
+                            {slot.type}
+                          </span>
                         </div>
 
-                        <h4 className={`text-xs font-mono font-bold tracking-tight uppercase line-clamp-2 ${
-                          isBreak ? 'text-[#7A6970]' : 'text-white group-hover:text-[#FF2A4B] transition'
-                        }`}>
+                        <h4 className="text-xs font-mono font-bold tracking-tight uppercase line-clamp-2 text-white group-hover:text-[#FF2A4B] transition">
                           {slot.subject}
                         </h4>
 
                         {slot.code && (
                           <div className="text-[10px] font-mono text-[#B3A2A8] mt-0.5">
-                            {slot.code} {isMath && <span className="text-[#FF2A4B] text-[9px]">(Theory)</span>}
+                            {slot.code} {isMath && <span className="text-[#FF2A4B] text-[9px] font-semibold">(Theory Only)</span>}
                           </div>
                         )}
                       </div>
 
                       <div className="mt-3 pt-2 border-t border-[#2E1C22] flex items-center justify-between text-[9px] font-mono text-[#7A6970]">
                         {slot.faculty ? (
-                          <span className="truncate max-w-[130px]">{slot.faculty}</span>
+                          <span className="truncate max-w-[120px] text-[#B3A2A8]">{slot.faculty}</span>
                         ) : (
-                          <span>General Schedule</span>
+                          <span>Academic Period</span>
                         )}
                         
-                        {!isBreak && (
-                          <span className="text-[#FF2A4B] group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5 font-bold">
-                            MARK <ArrowRight className="w-2.5 h-2.5" />
-                          </span>
-                        )}
+                        <span className="text-[#FF2A4B] group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5 font-bold">
+                          MARK <ArrowRight className="w-2.5 h-2.5" />
+                        </span>
                       </div>
                     </div>
                   );
