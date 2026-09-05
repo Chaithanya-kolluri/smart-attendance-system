@@ -1,4 +1,5 @@
 # Ignore Raspberry Pi edge scripts and Python files from Vercel deployment
+raspberry-pi/
 requirements.txt
 pi_capture.py
 .venv
