@@ -6,7 +6,11 @@ import {
   Info,
   FileText,
   ArrowRight,
-  Zap
+  Search,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Camera
 } from 'lucide-react';
 
 export default function AttendanceMatrix({ 
@@ -30,13 +34,15 @@ export default function AttendanceMatrix({
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'Present' | 'Absent' | 'Late'
 
-  // If activeSlotToMark is passed from timetable or banner, auto-configure!
+  // Current Subject Object
+  const currentSubject = classSubjects.find(s => s.id === selectedSubjectId) || classSubjects[0];
+
+  // If activeSlotToMark is passed from timetable, auto-configure!
   useEffect(() => {
     if (activeSlotToMark) {
-      // Find matching subject
       const match = classSubjects.find(s => 
-        activeSlotToMark.subject.toLowerCase().includes(s.code.toLowerCase()) ||
-        s.name.toLowerCase().includes(activeSlotToMark.subject.toLowerCase())
+        (activeSlotToMark.code && s.code && s.code.toLowerCase().includes(activeSlotToMark.code.toLowerCase())) ||
+        (activeSlotToMark.subject && s.name && s.name.toLowerCase().includes(activeSlotToMark.subject.toLowerCase()))
       );
       if (match) {
         setSelectedSubjectId(match.id);
@@ -49,12 +55,11 @@ export default function AttendanceMatrix({
     }
   }, [activeSlotToMark, classSubjects]);
 
-  // Current Subject Object
-  const currentSubject = classSubjects.find(s => s.id === selectedSubjectId) || classSubjects[0];
-
-  // UI Constraint: When EM for AI is active, Lab Session is forbidden.
+  // STRICT CURRICULUM CONSTRAINT: Engineering Mathematics (24AI31T) has NO lab.
+  // Prohibit Lab session selection for EM for AI under all circumstances.
   useEffect(() => {
-    if (currentSubject && !currentSubject.hasLab && sessionType === 'Lab') {
+    const isMath = currentSubject?.code === '24AI31T' || currentSubject?.id === 'em-ai' || !currentSubject?.hasLab;
+    if (isMath && sessionType === 'Lab') {
       setSessionType('Theory');
     }
   }, [currentSubject, sessionType]);
@@ -75,7 +80,7 @@ export default function AttendanceMatrix({
   const enrolledStudents = students.filter(s => s.classId === currentClass?.id);
 
   // Compute Session Metrics
-  const activeEnrolled = enrolledStudents.filter(s => s.isActive);
+  const activeEnrolled = enrolledStudents.filter(s => s.isActive !== false);
   const totalStudents = activeEnrolled.length;
   
   let presentCount = 0;
@@ -93,7 +98,7 @@ export default function AttendanceMatrix({
     ? Math.round(((presentCount + lateCount * 0.75) / totalStudents) * 100) 
     : 0;
 
-  // Handler for single student toggle
+  // Single student toggle handler
   const handleToggleStudentStatus = (studentId, newStatus) => {
     onUpdateAttendanceRecord(sessionKey, studentId, newStatus);
   };
@@ -109,8 +114,11 @@ export default function AttendanceMatrix({
 
   // Filtered student list
   const filteredStudents = enrolledStudents.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          s.rollNumber.toLowerCase().includes(searchQuery.toLowerCase());
+    const query = searchQuery.toLowerCase();
+    const matchesSearch = 
+      s.name.toLowerCase().includes(query) ||
+      (s.rollNumber && s.rollNumber.toLowerCase().includes(query)) ||
+      (s.id && s.id.toLowerCase().includes(query));
     if (!matchesSearch) return false;
 
     const currentStatus = currentSessionLogs[s.id] || 'Absent';
@@ -118,56 +126,64 @@ export default function AttendanceMatrix({
     return currentStatus === statusFilter;
   });
 
+  const isMathSubject = currentSubject?.code === '24AI31T' || currentSubject?.id === 'em-ai' || !currentSubject?.hasLab;
+
   return (
     <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 pt-10 pb-24 animate-reveal">
       
-      {/* Top Editorial Identity */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-10 border-b border-white/[0.08]">
+      {/* Official Header Area */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-[#2E1C22]">
         <div>
-          <div className="flex items-center gap-3 mb-3">
-            <span className="text-[10px] font-mono tracking-[0.25em] text-[#ccff00] uppercase font-semibold">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-[10px] font-mono tracking-[0.25em] text-[#FF2A4B] uppercase font-semibold">
               01.0 // High-Speed Attendance Matrix
             </span>
-            <span className="h-px w-10 bg-white/[0.1]" />
-            <span className="text-[10px] font-mono tracking-widest text-neutral-500 uppercase">
-              Class: {currentClass?.code} • {currentClass?.semester}
+            <span className="h-px w-10 bg-[#421B24]" />
+            <span className="text-[10px] font-mono tracking-widest text-[#B3A2A8] uppercase">
+              GTTC STU-35 • {currentClass?.code}
             </span>
           </div>
 
-          <h1 className="font-display text-5xl sm:text-7xl font-extrabold tracking-tighter text-white uppercase leading-[0.92]">
-            Attendance <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-neutral-500">Matrix.</span>
+          <h1 className="font-display text-4xl sm:text-5xl font-extrabold tracking-tight text-white uppercase">
+            Attendance <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-[#FF2A4B]">Matrix.</span>
           </h1>
+          <p className="mt-2 text-xs sm:text-sm text-[#B3A2A8] font-sans max-w-xl">
+            High-speed segmented attendance marking mapped to official GTTC syllabus codes with instant state synchronization.
+          </p>
         </div>
 
-        {/* Active Class Badge */}
-        <div className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/[0.08] rounded-sm font-mono text-xs">
-          <span className="w-2 h-2 rounded-none rotate-45 bg-[#ccff00] shadow-[0_0_8px_#ccff00]" />
-          <div>
-            <div className="text-white font-bold tracking-wider uppercase">{currentClass?.name}</div>
-            <div className="text-[10px] text-neutral-500">{currentClass?.department}</div>
-          </div>
-        </div>
+        {/* View Reports Shortcut Button */}
+        {onNavigateToReports && (
+          <button
+            type="button"
+            onClick={onNavigateToReports}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#161114] hover:bg-[#FF2A4B] text-[#B3A2A8] hover:text-white border border-[#2E1C22] hover:border-[#FF2A4B] rounded-sm text-xs font-mono uppercase tracking-wider font-bold transition shadow-sm"
+          >
+            <FileText className="w-4 h-4 text-[#FF2A4B]" />
+            <span>View Recorded Reports</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
-      {/* Control Strip: Subject, Session Type, Date & Class Selectors */}
-      <div className="py-8 border-b border-white/[0.08] space-y-6">
+      {/* Control Bar: Class, Subject, Session Type & Date */}
+      <div className="py-6 border-b border-[#2E1C22] space-y-4">
         
-        {/* Row 1: Class, Subject, and Date Selector Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
           
-          {/* Class Switcher (3 cols) */}
+          {/* Class Division Selector (3 cols) */}
           <div className="sm:col-span-3 space-y-1.5">
-            <label className="block text-[10px] font-mono tracking-[0.2em] text-neutral-400 uppercase font-semibold">
-              01 // Active Class
+            <label className="block text-[10px] font-mono tracking-widest text-[#B3A2A8] uppercase font-semibold">
+              01 // Class Division
             </label>
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-[#0c0c10] border border-white/[0.12] rounded-sm text-xs font-mono font-semibold text-white focus:outline-none focus:border-[#ccff00] transition"
+              className="w-full px-3.5 py-2.5 bg-[#161114] border border-[#2E1C22] rounded-sm text-xs font-mono text-white focus:outline-none focus:border-[#FF2A4B] transition uppercase"
             >
               {classes.map(c => (
-                <option key={c.id} value={c.id} disabled={c.isArchived}>
-                  {c.code} — {c.name} {c.isArchived ? '(Archived)' : ''}
+                <option key={c.id} value={c.id} className="bg-[#161114]">
+                  {c.code} // {c.name.slice(0, 20)}
                 </option>
               ))}
             </select>
@@ -175,41 +191,41 @@ export default function AttendanceMatrix({
 
           {/* Subject Selector (4 cols) */}
           <div className="sm:col-span-4 space-y-1.5">
-            <label className="block text-[10px] font-mono tracking-[0.2em] text-neutral-400 uppercase font-semibold">
-              02 // Target Subject
+            <label className="block text-[10px] font-mono tracking-widest text-[#B3A2A8] uppercase font-semibold">
+              02 // Syllabus Course
             </label>
             <select
               value={selectedSubjectId}
               onChange={(e) => setSelectedSubjectId(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-[#0c0c10] border border-white/[0.12] rounded-sm text-xs font-mono font-semibold text-white focus:outline-none focus:border-[#ccff00] transition"
+              className="w-full px-3.5 py-2.5 bg-[#161114] border border-[#2E1C22] rounded-sm text-xs font-mono text-white focus:outline-none focus:border-[#FF2A4B] transition"
             >
-              {classSubjects.map(sub => (
-                <option key={sub.id} value={sub.id}>
-                  {sub.code} — {sub.name} {!sub.hasLab ? ' [Theory Only]' : ''}
+              {classSubjects.map(s => (
+                <option key={s.id} value={s.id} className="bg-[#161114]">
+                  {s.code} - {s.name} {!s.hasLab ? '(Theory Only)' : ''}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Session Type: Theory vs Lab with Strict EM for AI Constraint (3 cols) */}
+          {/* Session Type: Theory vs Lab with Strict Math Constraint (3 cols) */}
           <div className="sm:col-span-3 space-y-1.5">
-            <label className="block text-[10px] font-mono tracking-[0.2em] text-neutral-400 uppercase font-semibold flex items-center justify-between">
+            <label className="block text-[10px] font-mono tracking-widest text-[#B3A2A8] uppercase font-semibold flex items-center justify-between">
               <span>03 // Session Type</span>
-              {!currentSubject?.hasLab && (
-                <span className="text-[9px] text-[#ff5500] font-mono lowercase tracking-normal">
-                  (no lab)
+              {isMathSubject && (
+                <span className="text-[9px] text-[#FF2A4B] font-mono lowercase">
+                  (theory only)
                 </span>
               )}
             </label>
             
-            <div className="flex items-center gap-1 p-1 bg-[#0c0c10] border border-white/[0.1] rounded-sm">
+            <div className="flex items-center gap-1 p-1 bg-[#161114] border border-[#2E1C22] rounded-sm">
               <button
                 type="button"
                 onClick={() => setSessionType('Theory')}
                 className={`flex-1 py-1.5 text-[11px] font-mono uppercase tracking-wider font-semibold rounded-xs transition ${
                   sessionType === 'Theory'
-                    ? 'bg-white text-black font-bold shadow-sm'
-                    : 'text-neutral-400 hover:text-white'
+                    ? 'bg-[#FF2A4B] text-white font-bold shadow-[0_0_10px_rgba(255,42,75,0.3)]'
+                    : 'text-[#B3A2A8] hover:text-white'
                 }`}
               >
                 Theory
@@ -218,18 +234,18 @@ export default function AttendanceMatrix({
               <button
                 type="button"
                 onClick={() => {
-                  if (currentSubject?.hasLab) {
+                  if (!isMathSubject) {
                     setSessionType('Lab');
                   }
                 }}
-                disabled={!currentSubject?.hasLab}
-                title={!currentSubject?.hasLab ? 'EM for AI is a Theory-only subject with no lab curriculum.' : 'Mark Lab Session'}
+                disabled={isMathSubject}
+                title={isMathSubject ? 'Engineering Mathematics is strictly configured as a Theory-Only course with no lab component.' : 'Mark Laboratory Session'}
                 className={`flex-1 py-1.5 text-[11px] font-mono uppercase tracking-wider font-semibold rounded-xs transition ${
-                  !currentSubject?.hasLab
-                    ? 'opacity-25 cursor-not-allowed text-neutral-600 line-through'
+                  isMathSubject
+                    ? 'opacity-25 cursor-not-allowed text-[#7A6970] line-through'
                     : sessionType === 'Lab'
-                    ? 'bg-[#ccff00] text-black font-bold shadow-[0_0_12px_rgba(204,255,0,0.3)]'
-                    : 'text-neutral-400 hover:text-white'
+                    ? 'bg-[#FF2A4B] text-white font-bold shadow-[0_0_10px_rgba(255,42,75,0.3)]'
+                    : 'text-[#B3A2A8] hover:text-white'
                 }`}
               >
                 Lab Session
@@ -239,81 +255,73 @@ export default function AttendanceMatrix({
 
           {/* Calendar Date (2 cols) */}
           <div className="sm:col-span-2 space-y-1.5">
-            <label className="block text-[10px] font-mono tracking-[0.2em] text-neutral-400 uppercase font-semibold">
-              04 // Date
+            <label className="block text-[10px] font-mono tracking-widest text-[#B3A2A8] uppercase font-semibold">
+              04 // Session Date
             </label>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full px-3 py-2 bg-[#0c0c10] border border-white/[0.12] rounded-sm text-xs font-mono text-white focus:outline-none focus:border-[#ccff00] transition"
+              className="w-full px-3 py-2 bg-[#161114] border border-[#2E1C22] rounded-sm text-xs font-mono text-white focus:outline-none focus:border-[#FF2A4B] transition"
             />
           </div>
 
         </div>
 
-        {/* Row 2: Subject Metadata Banner & Notification if EM for AI is selected */}
-        {!currentSubject?.hasLab && (
-          <div className="p-3 bg-[#ff5500]/10 border border-[#ff5500]/30 rounded-sm flex items-center justify-between text-xs font-mono text-[#ff5500] animate-reveal">
+        {/* Math Theory-Only Strict Warning Banner */}
+        {isMathSubject && (
+          <div className="p-3 bg-[#421B24]/40 border border-[#FF2A4B]/40 rounded-sm flex items-center justify-between text-xs font-mono text-[#FF2A4B] animate-reveal">
             <div className="flex items-center gap-2.5">
-              <Info className="w-4 h-4 flex-shrink-0" />
+              <Info className="w-4 h-4 flex-shrink-0 text-[#FF2A4B]" />
               <span>
-                <strong>{currentSubject?.code} Constraint:</strong> Engineering Mathematics for AI has no laboratory syllabus. Lab session option is automatically restricted.
+                <strong>{currentSubject?.code} Curriculum Rule:</strong> Engineering Mathematics is strictly configured as a theory-only course. Laboratory hours and lab slot markings are disabled.
               </span>
             </div>
-            <span className="text-[10px] uppercase tracking-widest font-bold opacity-80 hidden sm:inline">
-              [Theory Enforced]
+            <span className="text-[10px] uppercase tracking-widest font-bold bg-[#FF2A4B]/20 px-2 py-0.5 rounded-xs border border-[#FF2A4B]/30 hidden sm:inline">
+              Theory Enforced
             </span>
           </div>
         )}
 
       </div>
 
-      {/* KPI Ribbon Strip: Session Turnout & Ratios */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 py-10 border-b border-white/[0.08]">
+      {/* KPI Ribbon Strip: Turnout Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 py-8 border-b border-[#2E1C22]">
         
-        <div>
-          <span className="text-[10px] font-mono tracking-[0.2em] text-neutral-500 uppercase font-semibold">
-            01 // Class Roster
-          </span>
-          <div className="font-display text-4xl sm:text-5xl font-extrabold text-white tracking-tighter mt-2">
+        <div className="p-4 bg-[#161114] border border-[#2E1C22] rounded-sm">
+          <span className="text-[10px] font-mono tracking-widest text-[#B3A2A8] uppercase">01 // Active Roster</span>
+          <div className="font-mono text-3xl font-bold text-white mt-1">
             {totalStudents}
           </div>
-          <p className="text-[10px] font-mono text-neutral-500 mt-1">
-            Active Candidates ({enrolledStudents.length - totalStudents} Inactive)
+          <p className="text-[10px] font-mono text-[#7A6970] mt-0.5">
+            Candidates in {currentClass?.code}
           </p>
         </div>
 
-        <div>
-          <span className="text-[10px] font-mono tracking-[0.2em] text-[#ccff00] uppercase font-semibold">
-            02 // Marked Present
-          </span>
-          <div className="font-display text-4xl sm:text-5xl font-extrabold text-[#ccff00] tracking-tighter mt-2">
+        <div className="p-4 bg-[#161114] border border-[#2E1C22] rounded-sm">
+          <span className="text-[10px] font-mono tracking-widest text-[#00FF88] uppercase">02 // Present</span>
+          <div className="font-mono text-3xl font-bold text-[#00FF88] mt-1">
             {presentCount}
           </div>
-          <p className="text-[10px] font-mono text-neutral-500 mt-1">Verified In Attendance</p>
+          <p className="text-[10px] font-mono text-[#7A6970] mt-0.5">Verified In Class</p>
         </div>
 
-        <div>
-          <span className="text-[10px] font-mono tracking-[0.2em] text-[#ff5500] uppercase font-semibold">
-            03 // Marked Absent
-          </span>
-          <div className="font-display text-4xl sm:text-5xl font-extrabold text-[#ff5500] tracking-tighter mt-2">
+        <div className="p-4 bg-[#161114] border border-[#2E1C22] rounded-sm">
+          <span className="text-[10px] font-mono tracking-widest text-[#FF2A4B] uppercase">03 // Absent</span>
+          <div className="font-mono text-3xl font-bold text-[#FF2A4B] mt-1">
             {absentCount}
           </div>
-          <p className="text-[10px] font-mono text-neutral-500 mt-1">{lateCount} logged late arrival</p>
+          <p className="text-[10px] font-mono text-[#7A6970] mt-0.5">{lateCount} logged late</p>
         </div>
 
-        <div>
-          <span className="text-[10px] font-mono tracking-[0.2em] text-[#3b82f6] uppercase font-semibold">
-            04 // Session Turnout
-          </span>
-          <div className="font-display text-4xl sm:text-5xl font-extrabold text-white tracking-tighter mt-2">
+        <div className="p-4 bg-[#161114] border border-[#2E1C22] rounded-sm">
+          <span className="text-[10px] font-mono tracking-widest text-[#FFB800] uppercase">04 // Turnout Ratio</span>
+          <div className="font-mono text-3xl font-bold text-white mt-1">
             {turnoutPercentage}%
           </div>
-          <div className="w-full h-1 bg-white/[0.06] rounded-none mt-2 overflow-hidden">
+          <div className="w-full h-1 bg-[#2E1C22] rounded-none mt-2 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-[#2563eb] to-[#ccff00] transition-all duration-500"
+              className="h-full bg-gradient-to-r from-[#FF2A4B] to-[#00FF88] transition-all duration-500"
               style={{ width: `${turnoutPercentage}%` }}
             />
           </div>
@@ -321,31 +329,32 @@ export default function AttendanceMatrix({
 
       </div>
 
-      {/* Action Bar: Bulk Controls & Search Filters */}
-      <div className="py-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08]">
+      {/* Action Bar: Bulk Mark Controls & Search */}
+      <div className="py-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#2E1C22]">
         
         {/* Search Input */}
         <div className="relative max-w-xs w-full">
+          <Search className="w-4 h-4 text-[#7A6970] absolute left-3 top-2.5" />
           <input
             type="text"
-            placeholder="Filter by roll number or name..."
+            placeholder="Search roll number or name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3.5 py-2 bg-white/[0.02] border border-white/[0.1] rounded-sm text-xs font-mono text-white placeholder-neutral-600 focus:outline-none focus:border-[#ccff00] transition"
+            className="w-full pl-9 pr-3.5 py-2 bg-[#161114] border border-[#2E1C22] rounded-sm text-xs font-mono text-white placeholder-[#7A6970] focus:border-[#FF2A4B] outline-none transition"
           />
         </div>
 
         {/* Bulk Action Controls */}
         <div className="flex flex-wrap items-center gap-2">
           
-          <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-500 mr-2">
-            Bulk Invocations:
+          <span className="text-[10px] font-mono uppercase tracking-widest text-[#B3A2A8] mr-1">
+            Bulk Actions:
           </span>
 
           <button
             type="button"
             onClick={() => handleMarkAll('Present')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-[#ccff00] hover:text-black border border-white/[0.1] rounded-xs text-[11px] font-mono uppercase tracking-wider font-bold transition duration-200"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00FF88]/10 hover:bg-[#00FF88] text-[#00FF88] hover:text-black border border-[#00FF88]/30 rounded-xs text-[10px] font-mono uppercase tracking-wider font-bold transition duration-200"
           >
             <CheckCheck className="w-3.5 h-3.5" />
             <span>Mark All Present</span>
@@ -354,14 +363,14 @@ export default function AttendanceMatrix({
           <button
             type="button"
             onClick={() => handleMarkAll('Absent')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.04] hover:bg-[#ff5500] hover:text-white border border-white/[0.1] rounded-xs text-[11px] font-mono uppercase tracking-wider font-bold transition duration-200"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FF2A4B]/10 hover:bg-[#FF2A4B] text-[#FF2A4B] hover:text-white border border-[#FF2A4B]/30 rounded-xs text-[10px] font-mono uppercase tracking-wider font-bold transition duration-200"
           >
             <XSquare className="w-3.5 h-3.5" />
             <span>Mark All Absent</span>
           </button>
 
           {/* Status Filter Chips */}
-          <div className="flex items-center gap-1 ml-2 pl-2 border-l border-white/[0.1]">
+          <div className="flex items-center gap-1 ml-2 pl-2 border-l border-[#2E1C22]">
             {['ALL', 'Present', 'Late', 'Absent'].map(f => (
               <button
                 key={f}
@@ -369,27 +378,14 @@ export default function AttendanceMatrix({
                 onClick={() => setStatusFilter(f)}
                 className={`px-2 py-1 text-[10px] font-mono uppercase tracking-widest rounded-xs transition ${
                   statusFilter === f
-                    ? 'bg-white text-black font-bold'
-                    : 'text-neutral-500 hover:text-neutral-300'
+                    ? 'bg-[#FF2A4B] text-white font-bold'
+                    : 'text-[#B3A2A8] hover:text-white'
                 }`}
               >
                 {f}
               </button>
             ))}
           </div>
-
-          {onNavigateToReports && (
-            <button
-              type="button"
-              onClick={onNavigateToReports}
-              className="flex items-center gap-1.5 px-3 py-1 bg-white/[0.04] hover:bg-[#ccff00] hover:text-black text-neutral-300 border border-white/[0.1] hover:border-[#ccff00] rounded-xs text-[10px] font-mono uppercase tracking-wider font-semibold transition duration-200 ml-2"
-              title="Open recorded session reports"
-            >
-              <FileText className="w-3 h-3 text-[#ccff00]" />
-              <span>Session Reports</span>
-              <ArrowRight className="w-3 h-3 opacity-60" />
-            </button>
-          )}
 
         </div>
 
@@ -399,102 +395,97 @@ export default function AttendanceMatrix({
       <div className="pt-6">
         
         {filteredStudents.length === 0 ? (
-          <div className="py-20 text-center border border-white/[0.06] rounded-sm bg-white/[0.01]">
-            <BookOpen className="w-8 h-8 text-neutral-600 mx-auto mb-3" />
-            <p className="text-sm font-mono text-neutral-300">No students matched the query criteria.</p>
-            <p className="text-xs font-mono text-neutral-600 mt-1">
-              Ensure students are enrolled in {currentClass?.code} via 02 // Student Directory.
+          <div className="py-20 text-center border border-[#2E1C22] rounded-sm bg-[#161114]/40">
+            <BookOpen className="w-8 h-8 text-[#7A6970] mx-auto mb-3" />
+            <p className="text-sm font-mono text-[#B3A2A8]">No candidates matched the filter criteria.</p>
+            <p className="text-xs font-mono text-[#7A6970] mt-1">
+              Ensure students are registered in {currentClass?.code} via 04 // Student Directory.
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto border border-[#2E1C22] rounded-sm bg-[#161114]">
             <table className="w-full text-left border-collapse font-mono">
               <thead>
-                <tr className="border-b border-white/[0.08] text-[10px] text-neutral-500 uppercase tracking-widest">
-                  <th className="py-4 pr-6 font-semibold">01 // Roll Number</th>
-                  <th className="py-4 px-6 font-semibold">02 // Candidate Name</th>
-                  <th className="py-4 px-6 font-semibold">03 // Enrolled Status</th>
-                  <th className="py-4 px-6 font-semibold">04 // Log State</th>
-                  <th className="py-4 pl-6 text-right font-semibold">Live Attendance Override</th>
+                <tr className="border-b border-[#2E1C22] text-[10px] text-[#B3A2A8] uppercase tracking-widest bg-[#0D0B0D]">
+                  <th className="py-3.5 px-4 font-semibold">Face Scan</th>
+                  <th className="py-3.5 px-4 font-semibold">USN / Roll Number</th>
+                  <th className="py-3.5 px-4 font-semibold">Candidate Name</th>
+                  <th className="py-3.5 px-4 font-semibold">Current State</th>
+                  <th className="py-3.5 px-4 text-right font-semibold">Segmented Mark Control</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.04] text-xs">
+              <tbody className="divide-y divide-[#2E1C22] text-xs">
                 {filteredStudents.map((student) => {
                   const status = currentSessionLogs[student.id] || 'Absent';
                   const isPresent = status === 'Present';
                   const isLate = status === 'Late';
                   const isAbsent = status === 'Absent';
+                  const hasFace = Boolean(student.faceData || student.face_data);
 
                   return (
-                    <tr 
-                      key={student.id} 
-                      className={`hover:bg-white/[0.02] transition-colors ${
-                        !student.isActive ? 'opacity-40 bg-black/20' : ''
-                      }`}
-                    >
+                    <tr key={student.id} className="hover:bg-[#1D151B] transition">
+                      
+                      {/* Face Thumbnail */}
+                      <td className="py-3 px-4">
+                        {hasFace ? (
+                          <div className="w-8 h-8 rounded-sm overflow-hidden border border-[#FF2A4B]/40 bg-[#0D0B0D]">
+                            <img 
+                              src={student.faceData || student.face_data} 
+                              alt={student.name} 
+                              className="w-full h-full object-cover" 
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded-sm border border-[#2E1C22] bg-[#0D0B0D] flex items-center justify-center text-[#7A6970]">
+                            <Camera className="w-3.5 h-3.5" />
+                          </div>
+                        )}
+                      </td>
+
                       {/* Roll Number */}
-                      <td className="py-4 pr-6">
-                        <span className="px-2.5 py-1 bg-white/[0.03] border border-white/[0.08] text-white font-bold text-xs rounded-xs">
-                          {student.rollNumber}
+                      <td className="py-3 px-4">
+                        <span className="font-bold text-white tracking-wider">
+                          {student.rollNumber || student.id}
                         </span>
                       </td>
 
-                      {/* Name */}
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-7 h-7 rounded-xs bg-white/[0.04] border border-white/[0.08] flex items-center justify-center font-display text-white font-bold text-xs">
-                            {student.avatarLetter || student.name.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="text-white font-sans font-semibold text-sm">{student.name}</div>
-                            <div className="text-[10px] text-neutral-500">{student.email}</div>
-                          </div>
-                        </div>
+                      {/* Candidate Name */}
+                      <td className="py-3 px-4 font-sans font-medium text-white">
+                        {student.name}
+                        {!student.isActive && (
+                          <span className="ml-2 text-[9px] font-mono text-[#FF2A4B] uppercase">[Suspended]</span>
+                        )}
                       </td>
 
-                      {/* Status */}
-                      <td className="py-4 px-6">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[9px] uppercase font-bold tracking-widest rounded-xs border ${
-                          student.isActive
-                            ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
-                            : 'text-neutral-500 bg-white/[0.02] border-white/[0.06]'
-                        }`}>
-                          <span className={`w-1 h-1 rounded-none rotate-45 ${
-                            student.isActive ? 'bg-emerald-400' : 'bg-neutral-600'
-                          }`} />
-                          {student.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-
-                      {/* Log State Badge */}
-                      <td className="py-4 px-6">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] uppercase font-bold tracking-widest rounded-xs border ${
-                          isPresent
-                            ? 'text-[#ccff00] bg-[#ccff00]/10 border-[#ccff00]/40'
+                      {/* Status Badge */}
+                      <td className="py-3 px-4">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider rounded-xs border font-bold ${
+                          isPresent 
+                            ? 'bg-[#00FF88]/10 text-[#00FF88] border-[#00FF88]/30'
                             : isLate
-                            ? 'text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/40'
-                            : 'text-[#ff5500] bg-[#ff5500]/10 border-[#ff5500]/40'
+                            ? 'bg-[#FFB800]/10 text-[#FFB800] border-[#FFB800]/30'
+                            : 'bg-[#FF2A4B]/10 text-[#FF2A4B] border-[#FF2A4B]/30'
                         }`}>
-                          <span className={`w-1.5 h-1.5 rounded-none rotate-45 ${
-                            isPresent ? 'bg-[#ccff00]' : isLate ? 'bg-[#f59e0b]' : 'bg-[#ff5500]'
-                          }`} />
-                          {status}
+                          {isPresent && <CheckCircle2 className="w-3 h-3" />}
+                          {isLate && <Clock className="w-3 h-3" />}
+                          {isAbsent && <XCircle className="w-3 h-3" />}
+                          <span>{status}</span>
                         </span>
                       </td>
 
-                      {/* Segmented High-Speed Action Buttons */}
-                      <td className="py-4 pl-6 text-right">
-                        <div className="inline-flex items-center gap-1">
+                      {/* Segmented Mark Toggle Buttons */}
+                      <td className="py-3 px-4 text-right">
+                        <div className="inline-flex items-center gap-1 p-1 bg-[#0D0B0D] border border-[#2E1C22] rounded-sm">
                           
                           {/* Present Toggle */}
                           <button
                             type="button"
-                            disabled={!student.isActive}
+                            disabled={student.isActive === false}
                             onClick={() => handleToggleStudentStatus(student.id, 'Present')}
-                            className={`px-3 py-1.5 text-[10px] uppercase tracking-wider font-bold rounded-xs transition-all duration-200 ${
+                            className={`px-3 py-1.5 text-[10px] uppercase tracking-wider font-bold rounded-xs transition ${
                               isPresent
-                                ? 'bg-[#ccff00] text-black shadow-[0_0_12px_rgba(204,255,0,0.35)] cursor-default'
-                                : 'bg-white/[0.03] hover:bg-[#ccff00]/20 hover:text-[#ccff00] text-neutral-400 border border-white/[0.08]'
+                                ? 'bg-[#00FF88] text-black shadow-[0_0_10px_rgba(0,255,136,0.35)]'
+                                : 'bg-[#161114] text-[#B3A2A8] hover:text-[#00FF88]'
                             }`}
                           >
                             Present
@@ -503,12 +494,12 @@ export default function AttendanceMatrix({
                           {/* Late Toggle */}
                           <button
                             type="button"
-                            disabled={!student.isActive}
+                            disabled={student.isActive === false}
                             onClick={() => handleToggleStudentStatus(student.id, 'Late')}
-                            className={`px-3 py-1.5 text-[10px] uppercase tracking-wider font-bold rounded-xs transition-all duration-200 ${
+                            className={`px-3 py-1.5 text-[10px] uppercase tracking-wider font-bold rounded-xs transition ${
                               isLate
-                                ? 'bg-[#f59e0b] text-black shadow-[0_0_12px_rgba(245,158,11,0.35)] cursor-default'
-                                : 'bg-white/[0.03] hover:bg-[#f59e0b]/20 hover:text-[#f59e0b] text-neutral-400 border border-white/[0.08]'
+                                ? 'bg-[#FFB800] text-black shadow-[0_0_10px_rgba(255,184,0,0.35)]'
+                                : 'bg-[#161114] text-[#B3A2A8] hover:text-[#FFB800]'
                             }`}
                           >
                             Late
@@ -517,12 +508,12 @@ export default function AttendanceMatrix({
                           {/* Absent Toggle */}
                           <button
                             type="button"
-                            disabled={!student.isActive}
+                            disabled={student.isActive === false}
                             onClick={() => handleToggleStudentStatus(student.id, 'Absent')}
-                            className={`px-3 py-1.5 text-[10px] uppercase tracking-wider font-bold rounded-xs transition-all duration-200 ${
+                            className={`px-3 py-1.5 text-[10px] uppercase tracking-wider font-bold rounded-xs transition ${
                               isAbsent
-                                ? 'bg-[#ff5500] text-white shadow-[0_0_12px_rgba(255,85,0,0.35)] cursor-default'
-                                : 'bg-white/[0.03] hover:bg-[#ff5500]/20 hover:text-[#ff5500] text-neutral-400 border border-white/[0.08]'
+                                ? 'bg-[#FF2A4B] text-white shadow-[0_0_10px_rgba(255,42,75,0.35)]'
+                                : 'bg-[#161114] text-[#B3A2A8] hover:text-[#FF2A4B]'
                             }`}
                           >
                             Absent

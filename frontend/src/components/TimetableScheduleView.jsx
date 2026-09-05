@@ -1,14 +1,9 @@
 import React from 'react';
 import { 
-  Calendar, 
   Clock, 
   BookOpen, 
-  User, 
-  Layers, 
-  Sparkles, 
-  ArrowRight,
-  Zap,
-  Coffee
+  ArrowRight, 
+  Coffee 
 } from 'lucide-react';
 import { GTTC_METADATA, GTTC_SUBJECTS, WEEKLY_SCHEDULE } from '../data/timetableData';
 
@@ -18,39 +13,39 @@ export default function TimetableScheduleView({ onSelectSlotForAttendance }) {
   return (
     <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 pt-10 pb-24 animate-reveal">
       
-      {/* Official Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-white/[0.08]">
+      {/* Official Header Area */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-[#2E1C22]">
         <div>
-          <div className="flex items-center gap-3 mb-3">
-            <span className="text-[10px] font-mono tracking-[0.25em] text-[#ccff00] uppercase font-semibold">
-              04.0 // Master Schedule Matrix
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-[10px] font-mono tracking-[0.25em] text-[#FF2A4B] uppercase font-semibold">
+              02.0 // Master Schedule Matrix
             </span>
-            <span className="h-px w-10 bg-white/[0.1]" />
-            <span className="text-[10px] font-mono tracking-widest text-neutral-500 uppercase">
+            <span className="h-px w-10 bg-[#421B24]" />
+            <span className="text-[10px] font-mono tracking-widest text-[#B3A2A8] uppercase">
               GTTC Centre Code: STU - 35
             </span>
           </div>
 
-          <h1 className="font-display text-4xl sm:text-6xl font-extrabold tracking-tighter text-white uppercase leading-[0.95]">
-            Class <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-neutral-500">Timetable.</span>
+          <h1 className="font-display text-4xl sm:text-5xl font-extrabold tracking-tight text-white uppercase">
+            Class <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-[#FF2A4B]">Timetable.</span>
           </h1>
-          <p className="mt-2 text-xs sm:text-sm text-neutral-400 font-mono">
+          <p className="mt-2 text-xs sm:text-sm text-[#B3A2A8] font-sans max-w-xl">
             {GTTC_METADATA.institution} • {GTTC_METADATA.course} ({GTTC_METADATA.semester})
           </p>
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-3 text-[10px] font-mono">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.02] border border-white/[0.08] rounded-xs text-neutral-300">
-            <span className="w-1.5 h-1.5 bg-[#3b82f6] rounded-none rotate-45" />
+        <div className="flex flex-wrap items-center gap-2.5 text-[10px] font-mono">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#161114] border border-[#2E1C22] rounded-xs text-[#B3A2A8]">
+            <span className="w-1.5 h-1.5 bg-[#FF2A4B] rounded-none rotate-45 shadow-[0_0_6px_#FF2A4B]" />
             <span>Theory Session</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#ccff00]/10 border border-[#ccff00]/30 rounded-xs text-[#ccff00]">
-            <span className="w-1.5 h-1.5 bg-[#ccff00] rounded-none rotate-45" />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#161114] border border-[#00FF88]/30 rounded-xs text-[#00FF88]">
+            <span className="w-1.5 h-1.5 bg-[#00FF88] rounded-none rotate-45 shadow-[0_0_6px_#00FF88]" />
             <span>Laboratory Block</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.02] border border-white/[0.08] rounded-xs text-neutral-400">
-            <Coffee className="w-3 h-3 text-[#f59e0b]" />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#161114] border border-[#2E1C22] rounded-xs text-[#B3A2A8]">
+            <Coffee className="w-3 h-3 text-[#FFB800]" />
             <span>Break / Assembly</span>
           </div>
         </div>
@@ -64,21 +59,18 @@ export default function TimetableScheduleView({ onSelectSlotForAttendance }) {
           return (
             <div 
               key={day} 
-              className="p-5 bg-[#0c0c10] border border-white/[0.08] rounded-sm hover:border-white/[0.18] transition-colors"
+              className="p-5 bg-[#161114] border border-[#2E1C22] rounded-md transition hover:border-[#FF2A4B]/40"
             >
               {/* Day Header */}
-              <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#2E1C22]">
                 <div className="flex items-center gap-3">
-                  <span className="w-2 h-2 rounded-none rotate-45 bg-[#ccff00]" />
-                  <h3 className="font-display text-xl font-bold text-white uppercase tracking-tight">
+                  <span className="w-2 h-2 bg-[#FF2A4B] rounded-none rotate-45 shadow-[0_0_8px_#FF2A4B]" />
+                  <h3 className="font-mono text-base font-bold text-white uppercase tracking-wider">
                     {day}
                   </h3>
-                  <span className="text-[10px] font-mono text-neutral-500 uppercase">
-                    Instructional Sequence
-                  </span>
                 </div>
-                <span className="text-[10px] font-mono text-neutral-500">
-                  8:00 AM — 5:30 PM IST
+                <span className="text-[10px] font-mono text-[#B3A2A8] uppercase">
+                  {scheduleSlots.filter(s => !s.isBreak).length} Academic Periods
                 </span>
               </div>
 
@@ -87,7 +79,7 @@ export default function TimetableScheduleView({ onSelectSlotForAttendance }) {
                 {scheduleSlots.map((slot, idx) => {
                   const isBreak = slot.isBreak;
                   const isLab = slot.type === 'Lab';
-                  const isSpecial = slot.type === 'Special';
+                  const isMath = slot.code === '24AI31T' || slot.subject?.toLowerCase().includes('em');
 
                   return (
                     <div
@@ -97,45 +89,52 @@ export default function TimetableScheduleView({ onSelectSlotForAttendance }) {
                           onSelectSlotForAttendance(slot, day);
                         }
                       }}
-                      className={`p-3 rounded-xs border flex flex-col justify-between transition-all duration-200 ${
+                      className={`p-3.5 rounded-sm border transition flex flex-col justify-between min-h-[110px] ${
                         isBreak 
-                          ? 'bg-black/30 border-white/[0.04] opacity-50 cursor-default'
-                          : isLab
-                          ? 'bg-[#ccff00]/5 border-[#ccff00]/25 hover:border-[#ccff00] hover:bg-[#ccff00]/10 cursor-pointer group'
-                          : 'bg-white/[0.02] border-white/[0.08] hover:border-[#3b82f6] hover:bg-[#3b82f6]/5 cursor-pointer group'
+                          ? 'bg-[#0D0B0D]/60 border-[#2E1C22] text-[#7A6970] cursor-default'
+                          : 'bg-[#0D0B0D] border-[#2E1C22] hover:border-[#FF2A4B] hover:shadow-[0_0_15px_rgba(255,42,75,0.15)] cursor-pointer group'
                       }`}
                     >
                       <div>
-                        {/* Time Slot */}
-                        <div className="flex items-center justify-between text-[10px] font-mono mb-1.5">
-                          <span className={isLab ? 'text-[#ccff00] font-semibold' : 'text-neutral-400'}>
+                        <div className="flex items-center justify-between text-[10px] font-mono text-[#B3A2A8] mb-1.5">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-[#FF2A4B]" />
                             {slot.start} - {slot.end}
                           </span>
-                          <span className="text-[9px] uppercase tracking-wider text-neutral-500">
-                            {slot.type}
-                          </span>
+                          {!isBreak && (
+                            <span className={`px-1 py-0.2 rounded-2xs text-[9px] uppercase font-bold ${
+                              isLab 
+                                ? 'text-[#00FF88] bg-[#00FF88]/10 border border-[#00FF88]/20'
+                                : 'text-[#FF2A4B] bg-[#FF2A4B]/10 border border-[#FF2A4B]/20'
+                            }`}>
+                              {slot.type}
+                            </span>
+                          )}
                         </div>
 
-                        {/* Subject Title */}
-                        <div className="text-xs font-display font-bold text-white uppercase tracking-tight group-hover:text-[#ccff00] transition-colors leading-snug">
+                        <h4 className={`text-xs font-mono font-bold tracking-tight uppercase line-clamp-2 ${
+                          isBreak ? 'text-[#7A6970]' : 'text-white group-hover:text-[#FF2A4B] transition'
+                        }`}>
                           {slot.subject}
-                        </div>
+                        </h4>
 
-                        {/* Course Code */}
-                        <div className="text-[10px] font-mono text-neutral-400 mt-1">
-                          {slot.code}
-                        </div>
+                        {slot.code && (
+                          <div className="text-[10px] font-mono text-[#B3A2A8] mt-0.5">
+                            {slot.code} {isMath && <span className="text-[#FF2A4B] text-[9px]">(Theory)</span>}
+                          </div>
+                        )}
                       </div>
 
-                      {/* Footer: Faculty & One-Click Trigger */}
-                      <div className="mt-3 pt-2 border-t border-white/[0.04] flex items-center justify-between text-[9px] font-mono text-neutral-500">
-                        <span className="truncate max-w-[120px]">
-                          {slot.faculty ? slot.faculty.split(' ')[0] + ' ' + (slot.faculty.split(' ')[1] || '') : ''}
-                        </span>
-
+                      <div className="mt-3 pt-2 border-t border-[#2E1C22] flex items-center justify-between text-[9px] font-mono text-[#7A6970]">
+                        {slot.faculty ? (
+                          <span className="truncate max-w-[130px]">{slot.faculty}</span>
+                        ) : (
+                          <span>General Schedule</span>
+                        )}
+                        
                         {!isBreak && (
-                          <span className="text-[9px] text-[#ccff00] opacity-0 group-hover:opacity-100 uppercase tracking-widest font-bold flex items-center gap-0.5 transition-opacity">
-                            Mark <ArrowRight className="w-2.5 h-2.5" />
+                          <span className="text-[#FF2A4B] group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5 font-bold">
+                            MARK <ArrowRight className="w-2.5 h-2.5" />
                           </span>
                         )}
                       </div>
@@ -148,58 +147,42 @@ export default function TimetableScheduleView({ onSelectSlotForAttendance }) {
         })}
       </div>
 
-      {/* Official Course Coordinators Reference Table */}
-      <div className="mt-14 pt-8 border-t border-white/[0.08]">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <span className="text-[10px] font-mono tracking-[0.2em] text-[#ccff00] uppercase font-bold">
-              Official Syllabus Registry
-            </span>
-            <h3 className="font-display text-2xl font-bold text-white uppercase tracking-tight mt-1">
-              Course Details & Faculty Coordinators
+      {/* Official Course Master Table */}
+      <div className="mt-12 p-6 bg-[#161114] border border-[#2E1C22] rounded-md">
+        <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#2E1C22]">
+          <div className="flex items-center gap-3">
+            <BookOpen className="w-4 h-4 text-[#FF2A4B]" />
+            <h3 className="font-mono text-sm font-bold text-white uppercase tracking-wider">
+              Approved Course Registry & Faculty Coordinators (STU - 35)
             </h3>
           </div>
-          <span className="text-[10px] font-mono text-neutral-500 uppercase">
-            Govt. of Karnataka Approved
-          </span>
+          <span className="text-[10px] font-mono text-[#B3A2A8] uppercase">Semester III</span>
         </div>
 
-        <div className="border border-white/[0.08] rounded-sm overflow-x-auto bg-[#0c0c10]">
-          <table className="w-full text-left border-collapse font-mono text-xs">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left font-mono text-xs border-collapse">
             <thead>
-              <tr className="border-b border-white/[0.08] bg-black/40 text-[10px] text-neutral-400 uppercase tracking-wider">
-                <th className="py-3.5 px-4 font-semibold">Sl.No</th>
-                <th className="py-3.5 px-4 font-semibold">Course Code</th>
-                <th className="py-3.5 px-6 font-semibold">Course Name</th>
-                <th className="py-3.5 px-4 font-semibold">Type</th>
-                <th className="py-3.5 px-4 font-semibold">Hours/Wk</th>
-                <th className="py-3.5 px-6 font-semibold">Course Co-ordinator</th>
+              <tr className="border-b border-[#2E1C22] text-[10px] text-[#B3A2A8] uppercase tracking-widest bg-[#0D0B0D]">
+                <th className="py-2.5 px-3">Course Code</th>
+                <th className="py-2.5 px-3">Subject Name</th>
+                <th className="py-2.5 px-3">Curriculum Mode</th>
+                <th className="py-2.5 px-3">Faculty Coordinator</th>
+                <th className="py-2.5 px-3 text-right">Lab Syllabus</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.04]">
-              {GTTC_SUBJECTS.map((sub) => (
-                <tr key={sub.slNo} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="py-3.5 px-4 text-neutral-500">{sub.slNo}</td>
-                  <td className="py-3.5 px-4">
-                    <span className="px-2 py-0.5 bg-white/[0.04] border border-white/[0.08] text-[#ccff00] font-bold rounded-xs">
-                      {sub.courseCode}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-6 text-white font-sans font-semibold">
-                    {sub.courseName}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className={`px-1.5 py-0.5 text-[9px] uppercase font-bold tracking-widest rounded-2xs ${
-                      sub.type === 'Lab' 
-                        ? 'bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/30' 
-                        : 'bg-white/[0.03] text-neutral-300 border border-white/[0.08]'
-                    }`}>
-                      {sub.type}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-neutral-400">{sub.hoursPerWeek} hrs</td>
-                  <td className="py-3.5 px-6 text-neutral-200 font-sans font-medium">
-                    {sub.coordinator}
+            <tbody className="divide-y divide-[#2E1C22]">
+              {GTTC_SUBJECTS.map((s) => (
+                <tr key={s.courseCode} className="hover:bg-[#1D151B] transition">
+                  <td className="py-2.5 px-3 font-bold text-[#FF2A4B]">{s.courseCode}</td>
+                  <td className="py-2.5 px-3 font-sans font-medium text-white">{s.courseName}</td>
+                  <td className="py-2.5 px-3 text-[#B3A2A8]">{s.type}</td>
+                  <td className="py-2.5 px-3 text-white">{s.coordinator}</td>
+                  <td className="py-2.5 px-3 text-right">
+                    {s.hasLab ? (
+                      <span className="text-[#00FF88] text-[10px] font-bold">Yes (Lab Sessions Mapped)</span>
+                    ) : (
+                      <span className="text-[#FF2A4B] text-[10px] font-bold">Strictly Theory-Only</span>
+                    )}
                   </td>
                 </tr>
               ))}
