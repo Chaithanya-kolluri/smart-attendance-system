@@ -1,0 +1,12 @@
+# Ignore Raspberry Pi edge scripts and Python files from Vercel deployment
+requirements.txt
+pi_capture.py
+.venv
+__pycache__
+*.py
+*.pyc
+
+# Ignore Docker and alternative deployment manifests
+Dockerfile
+render.yaml
+schema.sql
